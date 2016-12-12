@@ -41,7 +41,7 @@ import javax.net.ssl.SSLSocketFactory;
 public class Httippi {
 	
 	// Version code
-	public static final String VERSION = "0.1";
+	public static final String VERSION = "0.2";
 	// Mime types
 	public static final String MIMETYPE_JSON = "application/json";
 	public static final String MIMETYPE_TEXT_PLAIN = "text/plain";
@@ -52,24 +52,30 @@ public class Httippi {
 	private int responseCode;
 	private String responseMessage;
 	
+	private URL endpoint;
 	private HttpURLConnection connection;
 	private String userAgent = Httippi.class.getSimpleName()+"/"+VERSION;
 	
-	public Httippi(HttpURLConnection connection) {
-		super();
-		this.connection = connection;
-	}
-
-	public static Httippi open(URL endpoint) throws IOException {
-		URLConnection conn = endpoint.openConnection();
+	public Httippi() {
+		
+	}	
+	
+	public Httippi url(URL endpoint) throws IOException {
+		this.endpoint = endpoint;
+		return this;
+	}	
+	
+	private void open() throws IOException {
+		URLConnection conn = this.endpoint.openConnection();
 		if (!(conn instanceof HttpsURLConnection) && !(conn instanceof HttpURLConnection))
 			throw new IllegalArgumentException("Only http/s connection is allowed");
-
-		return new Httippi((HttpURLConnection) conn);
+		
+		this.connection = (HttpURLConnection) conn;
 	}
 
 	public String get() throws IOException {
 		try {
+			this.open();
 			this.connection.setRequestMethod("GET");
 		} catch (ProtocolException e) {
 		}
@@ -78,6 +84,7 @@ public class Httippi {
 	
 	public String delete() throws IOException {
 		try {
+			this.open();
 			this.connection.setRequestMethod("DELETE");
 		} catch (ProtocolException e) {
 		}
@@ -94,6 +101,7 @@ public class Httippi {
 	
 	public String post(String body, String contentType) throws IOException {
 		try {
+			this.open();
 			this.connection.setRequestMethod("POST");
 		} catch (ProtocolException e) {
 		}
@@ -106,6 +114,7 @@ public class Httippi {
 	
 	public String put(String body, String contentType) throws IOException {
 		try {
+			this.open();
 			this.connection.setRequestMethod("PUT");
 		} catch (ProtocolException e) {
 		}
@@ -163,7 +172,8 @@ public class Httippi {
 			}			
 			this.connection.setDoOutput(true);			
 			this.connection.getOutputStream().write(body.getBytes());
-			this.connection.getOutputStream().flush();			
+			this.connection.getOutputStream().flush();	
+			this.connection.getOutputStream().close();
 		}
 				
 		this.connection.connect();		
@@ -193,7 +203,7 @@ public class Httippi {
 		
 		// close input stream
 		input.close();		
-
+		
 		return sb.toString();
 	}	
 
