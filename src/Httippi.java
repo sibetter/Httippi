@@ -60,10 +60,81 @@ public class Httippi {
 		
 	}	
 	
-	public Httippi url(URL endpoint) throws IOException {
+	public HttippiClient url(URL endpoint) {
 		this.endpoint = endpoint;
-		return this;
+		return url();
 	}	
+	
+	public HttippiClient url() {		
+		return new HttippiClient() {
+			
+			public String get() throws IOException {
+				try {
+					open();
+					connection.setRequestMethod("GET");
+				} catch (ProtocolException e) {
+				}
+				return doConnection(null, null);
+			}
+			
+			public String delete() throws IOException {
+				try {
+					open();
+					connection.setRequestMethod("DELETE");
+				} catch (ProtocolException e) {
+				}
+				return doConnection(null, null);
+			}
+			
+			@Override
+			public String post(String body) throws IOException {
+				return this.post(body, MIMETYPE_TEXT_PLAIN);
+			}
+
+			@Override
+			public String post(String body, String contentType) throws IOException {
+				try {
+					open();
+					connection.setRequestMethod("POST");
+				} catch (ProtocolException e) {
+				}
+				return doConnection(body, contentType);
+			}
+			
+			public String getBytes() throws IOException {
+				throw new IOException("Not implemented yet");
+			}	
+			
+			public String put(String body) throws IOException {
+				return this.put(body, MIMETYPE_TEXT_PLAIN);
+			}
+			
+			public String put(String body, String contentType) throws IOException {
+				try {
+					open();
+					connection.setRequestMethod("PUT");
+				} catch (ProtocolException e) {
+				}
+				return doConnection(body, contentType);
+			}
+			
+			public String getResponseHeader(String key) {
+				return responseHeaders.get(key).get(0);
+			}	
+
+			public int getResponseCode() {
+				return responseCode;
+			}
+
+			public String getResponseMessage() {
+				return responseMessage;
+			}	
+
+			public String getContentType() {
+				return getResponseHeader("Content-type");
+			}
+		};
+	}
 	
 	private void open() throws IOException {
 		URLConnection conn = this.endpoint.openConnection();
@@ -71,71 +142,7 @@ public class Httippi {
 			throw new IllegalArgumentException("Only http/s connection is allowed");
 		
 		this.connection = (HttpURLConnection) conn;
-	}
-
-	public String get() throws IOException {
-		try {
-			this.open();
-			this.connection.setRequestMethod("GET");
-		} catch (ProtocolException e) {
-		}
-		return doConnection(null, null);
-	}
-	
-	public String delete() throws IOException {
-		try {
-			this.open();
-			this.connection.setRequestMethod("DELETE");
-		} catch (ProtocolException e) {
-		}
-		return doConnection(null, null);
-	}
-	
-	public String getBytes() throws IOException {
-		throw new IOException("Not implemented yet");
-	}
-	
-	public String post(String body) throws IOException {
-		return this.post(body, MIMETYPE_TEXT_PLAIN);
-	}
-	
-	public String post(String body, String contentType) throws IOException {
-		try {
-			this.open();
-			this.connection.setRequestMethod("POST");
-		} catch (ProtocolException e) {
-		}
-		return doConnection(body, contentType);
-	}
-	
-	public String put(String body) throws IOException {
-		return this.put(body, MIMETYPE_TEXT_PLAIN);
-	}
-	
-	public String put(String body, String contentType) throws IOException {
-		try {
-			this.open();
-			this.connection.setRequestMethod("PUT");
-		} catch (ProtocolException e) {
-		}
-		return doConnection(body, contentType);
-	}
-
-	public String getResponseHeader(String key) {
-		return this.responseHeaders.get(key).get(0);
 	}	
-
-	public int getResponseCode() {
-		return responseCode;
-	}
-
-	public String getResponseMessage() {
-		return responseMessage;
-	}	
-
-	public String getContentType() {
-		return getResponseHeader("Content-type");
-	}
 	
 	public Httippi setHttpBasicAutentication(String userName, String password) {
 		this.connection.setRequestProperty("Authorization",
@@ -206,5 +213,31 @@ public class Httippi {
 		
 		return sb.toString();
 	}	
+	
+	public interface HttippiClient {
+		
+		public String post(String body) throws IOException;
+		
+		public String post(String body, String contentType) throws IOException;		
+		
+		public String get() throws IOException;
+		
+		public String delete() throws IOException;
+		
+		public String getBytes() throws IOException;
+		
+		public String put(String body) throws IOException;
+		
+		public String put(String body, String contentType) throws IOException;
+		
+		public String getResponseHeader(String key);
+
+		public int getResponseCode();
+
+		public String getResponseMessage();
+
+		public String getContentType();
+		
+	}
 
 }
