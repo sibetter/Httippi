@@ -13,7 +13,7 @@
 				     			    .get();			
 				
 				//same url but post http verb			
-				String responsePost = client.post(new String("sample body"));
+				String responsePost = client.url().post(new String("sample body"));
 							
 				// new url and post http verb
 				String responsePost2 = client.url(new URL("http://localhost:9000/postForm?param1=test&param2=test"))
